@@ -1,21 +1,12 @@
 import os
+import requests
 from pinecone import Pinecone
-from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 
 # Environment variables ko load karein
 load_dotenv()
 
-_model = None
 _index = None
-
-
-def _get_model() -> SentenceTransformer:
-    global _model
-    if _model is None:
-        _model = SentenceTransformer("all-MiniLM-L6-v2")
-    return _model
-
 
 def _get_index():
     global _index
@@ -24,13 +15,24 @@ def _get_index():
         _index = pc.Index("islamic-duas")
     return _index
 
-
 def retrieve_duas(query: str, top_k: int = 3) -> list[dict]:
-    """Embed the query and fetch the top_k most relevant Duas."""
-    model = _get_model()
+    """Embed the query via API to save RAM and fetch relevant Duas."""
     index = _get_index()
 
-    embedding = model.encode(query).tolist()
+    # Model ko local RAM mein load karne ke bajaye Hugging Face API call karein
+    hf_token = os.environ.get("HUGGINGFACE_API_KEY")
+    if not hf_token:
+        raise ValueError("HUGGINGFACE_API_KEY is missing in environment variables.")
+
+    api_url = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+    headers = {"Authorization": f"Bearer {hf_token}"}
+
+    response = requests.post(api_url, headers=headers, json={"inputs": [query]})
+    
+    if response.status_code != 200:
+        raise Exception(f"Embedding API Error: {response.text}")
+        
+    embedding = response.json()[0] # Pehla result hamari query ki embedding hai
 
     results = index.query(
         vector=embedding,
