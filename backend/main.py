@@ -9,15 +9,11 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# CORS ka Nuclear Option: Har frontend ko ijazat de di gayi hai
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-        "https://noor-dua-chatbot.vercel.app",  # Yeh add ho gaya aapka live Vercel link!
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],  
+    allow_credentials=False, 
     allow_methods=["*"],
     allow_headers=["*"],
 )
