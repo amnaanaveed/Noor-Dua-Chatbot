@@ -1,0 +1,12 @@
+# Environments & Secrets
+venv/
+.env
+
+# Frontend Dependencies
+frontend/node_modules/
+frontend/dist/
+
+# Python Cache
+__pycache__/
+*.pyc
+.DS_Store
